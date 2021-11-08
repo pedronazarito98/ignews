@@ -45,7 +45,7 @@ export default function Home({ product }: HomeProps) {
 //função que faz a requisição na api de pagamentos, sem usar metodos HTTP, e exporta os dados da página para os componentes
 export const getStaticProps: GetStaticProps = async () => {
   const price = await stripe.prices.retrieve("price_1J18hrGIsL07i4oQYKD29d0U");
-
+  
   const product = {
     priceId: price.id,
     amount: new Intl.NumberFormat("en-US", {

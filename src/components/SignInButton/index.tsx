@@ -8,9 +8,8 @@ import { signIn, signOut, useSession } from "next-auth/client";
 export function SignInButton() {
   const [session] = useSession();
 
-  console.log(session);
-
   return session ? (
+
     <button
       className={styles.SignInButton}
       type="button"
@@ -20,7 +19,9 @@ export function SignInButton() {
       {session.user.name}
       <FiX color="#737380" className={styles.closeIcon} />
     </button>
+
   ) : (
+
     <button
       className={styles.SignInButton}
       type="button"
@@ -29,5 +30,6 @@ export function SignInButton() {
       <FaGithub color="#eba417" />
       Sign in with Github
     </button>
+    
   );
 }
