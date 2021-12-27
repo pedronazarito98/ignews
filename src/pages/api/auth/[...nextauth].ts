@@ -14,33 +14,55 @@ export default NextAuth({
       scope: "read:user",
     }),
   ],
-  //faz a inserção dos dados no Banco de dados
 
   callbacks: {
+    //* Verifica se o usuário tem plano ativo
+    async session(session) {
+      try {
+        const userActiveSubscription = await fauna.query(
+          q.Get(
+            q.Intersection([
+              q.Match(
+                q.Index("subscription_by_user_ref"),
+                q.Select(
+                  "ref",
+                  q.Get(
+                    q.Match(
+                      q.Index("user_by_Email"),
+                      q.Casefold(session.user.email)
+                    )
+                  )
+                )
+              ),
+              q.Match(q.Index("subscription_by_status"), "active"),
+            ])
+          )
+        );
+
+        return {
+          ...session,
+          activeSubscription: userActiveSubscription,
+        };
+      } catch {
+        return {
+          ...session,
+          activeSubscription: null,
+        };
+      }
+    },
+    //* Faz a inserção dos dados no Banco de dados
     async signIn(user, account, profile) {
       const { email } = user;
-      console.log('dfgjhdghjfghjk',user);
       try {
         await fauna.query(
           q.If(
             q.Not(
               q.Exists(
-                q.Match(
-                  q.Index('user_by_Email'),
-                  q.Casefold(user.email)
-                )
+                q.Match(q.Index("user_by_Email"), q.Casefold(user.email))
               )
             ),
-            q.Create(
-              q.Collection("users"),
-              { data: { email } }
-            ),
-            q.Get(
-              q.Match(
-                q.Index('user_by_Email'),
-                q.Casefold(user.email)
-              )
-            )
+            q.Create(q.Collection("users"), { data: { email } }),
+            q.Get(q.Match(q.Index("user_by_Email"), q.Casefold(user.email)))
           )
         );
         return true;
